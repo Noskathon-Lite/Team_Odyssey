@@ -4,8 +4,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useFocusEffect } from '@react-navigation/native';
 
 const BottomNav = ({ navigation }) => {
-  const [selectedNavItem, setSelectedNavItem] = useState('HomeScreen'); // Set default to 'HomeScreen'
-
+  const [selectedNavItem, setSelectedNavItem] = useState();
   const navItems = [
     { name: 'HomeScreen', icon: 'home' },
     { name: 'ReportScreen', icon: 'report' },
