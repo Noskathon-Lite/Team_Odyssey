@@ -110,15 +110,14 @@ class GenerateOTPAPIView(views.APIView):
 # Verify OTP for user
 class VerifyOTPAPIView(APIView):
     def post(self, request):
-        email = request.data.get('email')
         otp = request.data.get('otp')
 
-        if not email or not otp:
-            return Response({"error": "Email and OTP are required."}, status=status.HTTP_400_BAD_REQUEST)
+        if not otp:
+            return Response({"error": "OTP is required."}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            # Step 1: Retrieve OTP verification object
-            otp_verification = OTPVerification.objects.filter(email=email, otp=otp, is_verified=False).first()
+            # Step 1: Retrieve OTP verification object using the provided OTP
+            otp_verification = OTPVerification.objects.filter(otp=otp, is_verified=False).first()
 
             if not otp_verification:
                 return Response({"error": "Invalid OTP or expired OTP."}, status=status.HTTP_400_BAD_REQUEST)
@@ -132,15 +131,15 @@ class VerifyOTPAPIView(APIView):
             otp_verification.is_verified = True
             otp_verification.save()
 
-            # Step 4: Create User instance and save data
+            # Step 4: Create User instance and save data (including password from registration step)
             user = User.objects.create(
-                email=email,
-                password=otp_verification.otp,  # For now, you can store the OTP as password (for verification)
+                email=otp_verification.email,
+                password=otp_verification.otp,  # Use OTP as password temporarily (you can reset it later)
                 firstname=otp_verification.firstname,
                 lastname=otp_verification.lastname
             )
 
-            user.set_password(request.data.get('password'))  # Set real password
+            user.set_password(otp_verification.otp)  # Set password to OTP (hashed)
             user.save()
 
             return Response({"message": "OTP verified and user information saved."}, status=status.HTTP_200_OK)
