@@ -2,12 +2,16 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet, FlatList } from "react-native";
 // import MapView, { Marker } from "react-native-maps";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import BottomNav from "../components/BottomNav";
 
 
 const HomeScreen = ({ navigation }) => {
     const recentReports = [
-        { id: "1", title: "Pothole on Main St", status: "Pending", location: "Main Street" },
-        { id: "2", title: "Broken Streetlight", status: "Resolved", location: "2nd Avenue" },
+        { id: "1", title: "Pothole on Ring Road", status: "Pending", location: "Balkumari" },
+        { id: "2", title: "Broken Streetlight", status: "Resolved", location: "Lokanthali" },
+        { id: "3", title: "Broken Pole", status: "Resolved", location: "Lokanthali" },
+        { id: "4", title: "Broken Streetlight", status: "Resolved", location: "Lokanthali" },
+        { id: "5", title: "Broken Streetlight", status: "Resolved", location: "Lokanthali" },
         // Add more dummy data as needed
     ];
 
@@ -45,11 +49,12 @@ const HomeScreen = ({ navigation }) => {
                     </View>
                 )}
             />
-            <View style={styles.quickActions}>
+            {/* <View style={styles.quickActions}>
                 <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate("MapScreen")}>
                     <Text style={styles.actionText}>Report an Issue</Text>
                 </TouchableOpacity>
-            </View>
+            </View> */}
+            <BottomNav navigation={navigation} />
         </View>
         
     );
@@ -61,11 +66,11 @@ const styles = StyleSheet.create({
         backgroundColor: "#f9f9f9",
         padding: 10,
     },
-    quickActions: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        marginBottom: 15,
-    },
+    // quickActions: {
+    //     flexDirection: "row",
+    //     justifyContent: "space-between",
+    //     marginBottom: 15,
+    // },
     actionButton: {
         flex: 1,
         backgroundColor: "blue",
