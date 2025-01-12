@@ -6,6 +6,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import WelcomeScreen from './screens/WelcomeScreen';
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
+import OTPVerificationScreen from './screens/OtpVerificationScreen';
 
 
 const Stack = createStackNavigator();
@@ -17,6 +18,7 @@ const App = () => {
         <Stack.Screen name="WelcomeScreen" component={WelcomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ headerShown: false }} />
         <Stack.Screen name="RegisterScreen" component={RegisterScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="OTPVerificationScreen" component={OTPVerificationScreen} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
