@@ -3,22 +3,24 @@ from django.contrib.auth.admin import UserAdmin
 from .models import User, Hazard
 
 class CustomUserAdmin(UserAdmin):
-    model = User
-    list_display = ('email', 'firstname', 'lastname', 'is_staff', 'is_active')
-    list_filter = ('is_staff', 'is_active')
+    # Specify the fields to display in the admin panel
+    list_display = ('email', 'firstname', 'lastname', 'is_active', 'is_staff')
+    search_fields = ('email', 'firstname', 'lastname')
+    ordering = ('email',)
+
+    # Specify the fields to edit when adding or changing users
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         ('Personal Info', {'fields': ('firstname', 'lastname')}),
-        ('Permissions', {'fields': ('is_staff', 'is_active')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Important Dates', {'fields': ('last_login', 'date_joined')}),
     )
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'password1', 'password2', 'firstname', 'lastname', 'is_staff', 'is_active')}
-        ),
+            'fields': ('email', 'password1', 'password2', 'firstname', 'lastname'),
+        }),
     )
-    search_fields = ('email',)
-    ordering = ('email',)
 
 # Register the models
 admin.site.register(User, CustomUserAdmin)

@@ -1,8 +1,9 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 from django.utils import timezone
+import random, string
 
-class UserManager(BaseUserManager):
+class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError('The Email field must be set')
@@ -16,22 +17,29 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
 
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+
         return self.create_user(email, password, **extra_fields)
 
-class User(AbstractBaseUser):
-    email = models.EmailField(unique=True)
+class User(AbstractBaseUser, PermissionsMixin):
+    email = models.EmailField(max_length=255, unique=True)
     firstname = models.CharField(max_length=50)
     lastname = models.CharField(max_length=50)
+    password = models.CharField(max_length=128)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+    date_joined = models.DateTimeField(default=timezone.now)
 
-    objects = UserManager()
-
-    USERNAME_FIELD = 'email'  # Use email for login
+    USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['firstname', 'lastname']
 
+    objects = CustomUserManager()
+
     def __str__(self):
-        return self.email
+        return f"{self.firstname} {self.lastname}"
 
 class Hazard(models.Model):
     HAZARD_CATEGORIES = [
@@ -57,3 +65,17 @@ class Hazard(models.Model):
 
     def __str__(self):
         return f"{self.HazardCategory} at {self.address} ({self.status})"
+
+class OTPVerification(models.Model):
+    email = models.EmailField()
+    otp = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_verified = models.BooleanField(default=False)
+
+    def generate_otp(self):
+        """Generate a random 6-digit OTP"""
+        self.otp = ''.join(random.choices(string.digits, k=6))
+        self.save()
+
+    def __str__(self):
+        return f"OTP for {self.email}"
