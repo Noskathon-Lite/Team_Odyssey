@@ -1,3 +1,4 @@
+#views.py
 from rest_framework import viewsets, status, views
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -56,28 +57,29 @@ class ProtectedAPIView(APIView):
 # Register a new user
 class RegisterAPIView(APIView):
     def post(self, request):
-        # Step 1: Register user details (email, password, etc.)
-        serializer = RegistrationSerializer(data=request.data)
+        # Register user details (email, password, first name, last name, etc.)
+        email = request.data.get('email')
+        password = request.data.get('password')
+        first_name = request.data.get('firstname')
+        last_name = request.data.get('lastname')
+
+        if not email or not password or not first_name or not last_name:
+            return Response({"error": "Email, password, first name, and last name are required."}, status=status.HTTP_400_BAD_REQUEST)
         
-        if serializer.is_valid():
-            # Save the user instance
-            user = serializer.save()
+        # Step 1: Create OTPVerification instance to store details temporarily
+        otp_verification = OTPVerification.objects.create(email=email, firstname=first_name, lastname=last_name)
+        otp_verification.generate_otp()
 
-            # Step 2: Generate OTP for the user
-            otp_verification = OTPVerification.objects.create(email=user.email)
-            otp_verification.generate_otp()
+        # Step 2: Send OTP to user's email
+        send_mail(
+            subject='Your OTP Code',
+            message=f'Your OTP code is {otp_verification.otp}. It is valid for 5 minutes.',
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[email],
+        )
 
-            # Step 3: Send OTP to user's email
-            send_mail(
-                subject='Your OTP Code',
-                message=f'Your OTP code is {otp_verification.otp}. It is valid for 5 minutes.',
-                from_email=settings.EMAIL_HOST_USER,
-                recipient_list=[user.email],
-            )
+        return Response({"message": "User registered successfully! Please verify OTP to complete registration."}, status=status.HTTP_201_CREATED)
 
-            return Response({"message": "User registered successfully! Please verify OTP to complete registration."}, status=status.HTTP_201_CREATED)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # Generate OTP for email verification
@@ -115,26 +117,33 @@ class VerifyOTPAPIView(APIView):
             return Response({"error": "Email and OTP are required."}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
+            # Step 1: Retrieve OTP verification object
             otp_verification = OTPVerification.objects.filter(email=email, otp=otp, is_verified=False).first()
 
             if not otp_verification:
                 return Response({"error": "Invalid OTP or expired OTP."}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Check if OTP is expired (5 minutes)
+            # Step 2: Check if OTP is expired (5 minutes)
             if timezone.now() - otp_verification.created_at > timedelta(minutes=5):
                 otp_verification.delete()
                 return Response({"error": "OTP has expired."}, status=status.HTTP_400_BAD_REQUEST)
 
+            # Step 3: Mark OTP as verified
             otp_verification.is_verified = True
             otp_verification.save()
 
-            # Now update the User object with the required fields
-            user = User.objects.get(email=email)
-            user.firstname = request.data.get('firstname')
-            user.lastname = request.data.get('lastname')
+            # Step 4: Create User instance and save data
+            user = User.objects.create(
+                email=email,
+                password=otp_verification.otp,  # For now, you can store the OTP as password (for verification)
+                firstname=otp_verification.firstname,
+                lastname=otp_verification.lastname
+            )
+
+            user.set_password(request.data.get('password'))  # Set real password
             user.save()
 
-            return Response({"message": "OTP verified and user information updated."}, status=status.HTTP_200_OK)
+            return Response({"message": "OTP verified and user information saved."}, status=status.HTTP_200_OK)
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

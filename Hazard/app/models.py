@@ -5,15 +5,18 @@ import random, string
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
+        """Create and return a regular user with an email and password"""
         if not email:
             raise ValueError('The Email field must be set')
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
+        user.is_verified = False  # User is not verified initially
         user.save(using=self._db)
         return user
 
     def create_superuser(self, email, password=None, **extra_fields):
+        """Create and return a superuser with an email, password, and necessary fields"""
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
 
@@ -26,9 +29,10 @@ class CustomUserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=255, unique=True)
-    firstname = models.CharField(max_length=50)
-    lastname = models.CharField(max_length=50)
+    firstname = models.CharField(max_length=50, blank=True, null=True)  # Initially blank
+    lastname = models.CharField(max_length=50, blank=True, null=True)   # Initially blank
     password = models.CharField(max_length=128)
+    is_verified = models.BooleanField(default=False)  # Track if OTP is verified
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
@@ -39,7 +43,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = CustomUserManager()
 
     def __str__(self):
-        return f"{self.firstname} {self.lastname}"
+        return f"{self.firstname} {self.lastname}" if self.firstname and self.lastname else self.email
 
 class Hazard(models.Model):
     HAZARD_CATEGORIES = [
@@ -71,6 +75,8 @@ class OTPVerification(models.Model):
     otp = models.CharField(max_length=6)
     created_at = models.DateTimeField(auto_now_add=True)
     is_verified = models.BooleanField(default=False)
+    firstname = models.CharField(max_length=50, blank=True, null=True)
+    lastname = models.CharField(max_length=50, blank=True, null=True)
 
     def generate_otp(self):
         """Generate a random 6-digit OTP"""
@@ -79,3 +85,4 @@ class OTPVerification(models.Model):
 
     def __str__(self):
         return f"OTP for {self.email}"
+
