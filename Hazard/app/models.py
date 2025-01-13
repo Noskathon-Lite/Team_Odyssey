@@ -51,6 +51,7 @@ class Hazard(models.Model):
         ('infrastructure', 'Infrastructure'),
         ('environment', 'Environment'),
         ('others', 'Others'),
+        
     ]
 
     STATUS_CHOICES = [
@@ -59,9 +60,9 @@ class Hazard(models.Model):
         ('underInvestigation', 'Under Investigation'),
     ]
 
-    HazardCategory = models.CharField(max_length=50, choices=HAZARD_CATEGORIES)
-    description = models.CharField(max_length=500)
-    address = models.CharField(max_length=50)
+    HazardCategory = models.CharField(max_length=50, choices=HAZARD_CATEGORIES, default='others')
+    description = models.CharField(max_length=500,default='No description provided')  # Updated from descriptionData to description
+    address = models.CharField(max_length=500,default='no address')  # Updated from addressData to address
     image = models.ImageField(upload_to='hazards/')
     submittedAt = models.DateTimeField(auto_now_add=True)
     reportedBy = models.CharField(max_length=110, blank=True, null=True)
@@ -85,4 +86,3 @@ class OTPVerification(models.Model):
 
     def __str__(self):
         return f"OTP for {self.email}"
-
