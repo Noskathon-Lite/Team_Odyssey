@@ -17,7 +17,7 @@ const LoginScreen = ({ navigation }) => {
   const handleLogin = () => {
     if (email && password) {
       Alert.alert("Login", `Email: ${email}\nPassword: ${password}`);
-      navigation.navigate("MapScreen");
+      navigation.navigate("HomeScreen");
     } else {
       Alert.alert("Error", "Please fill in all fields.");
     }

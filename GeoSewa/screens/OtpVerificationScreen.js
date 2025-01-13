@@ -8,18 +8,38 @@ import {
   Alert,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import { BASE_URL } from "../config/requiredIP";
 
 const OTPVerificationScreen = ({ navigation }) => {
   const [otp, setOtp] = useState("");
-
-  const handleVerify = () => {
+  const handleVerify = async () => {
     if (otp.length === 6) {
-      Alert.alert("Success", "OTP verified successfully.");
-      navigation.navigate("LoginScreen"); // Navigate to the desired screen after verification
+      try {
+        const response = await fetch(`${BASE_URL}/api/verify-otp/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ otp }), // Sending OTP as part of the request body
+        });
+  
+        const data = await response.json();
+  
+        if (response.ok) {
+          Alert.alert("Success", data.message || "OTP verified successfully.");
+          navigation.navigate("LoginScreen"); // Navigate to the Login screen after verification
+        } else {
+          Alert.alert("Error", data.error || "Failed to verify OTP.");
+        }
+      } catch (error) {
+        console.error('Error verifying OTP:', error);
+        Alert.alert("Error", "Something went wrong. Please try again.");
+      }
     } else {
       Alert.alert("Error", "Please enter a valid 6-digit OTP.");
     }
   };
+  
 
   return (
     <View style={styles.container}>

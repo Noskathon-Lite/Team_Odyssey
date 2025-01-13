@@ -8,30 +8,37 @@ import {
     Alert,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import { BASE_URL } from "../config/requiredIP";
 
 const RegisterScreen = ({ navigation }) => {
-    const [firstName, setFirstName] = useState("");
-    const [lastName, setLastName] = useState("");
+    const [firstname, setfirstname] = useState("");
+    const [lastname, setlastname] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
     const handleRegister = async () => {
-        if (!firstName || !lastName || !email || !password ) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!firstname || !lastname || !email || !password) {
             Alert.alert("Error", "Please fill in all fields.");
+            return;
+        }
+
+        if (!emailRegex.test(email)) {
+            Alert.alert("Error", "Please enter a valid email address.");
             return;
         }
     
         try {
-            const response = await fetch("http://192.168.23.34:8000/api/register/", {
+            const response = await fetch(`${BASE_URL}/api/register/`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-
                 },
                 body: JSON.stringify({
-                    first_name: firstName,
-                    last_name: lastName,
+                    firstname: firstname,
+                    lastname: lastname,
                     email: email,
                     password: password,
                 }),
@@ -43,7 +50,8 @@ const RegisterScreen = ({ navigation }) => {
                 navigation.navigate("OTPVerificationScreen");
             } else {
                 const errorData = await response.json();
-                Alert.alert("Error", errorData.detail || "Registration failed.");
+                console.log(errorData);
+                Alert.alert("Error", errorData || "Registration failed.");
             }
         } catch (error) {
             console.error("Error registering user:", error);
@@ -65,8 +73,8 @@ const RegisterScreen = ({ navigation }) => {
                         style={styles.input}
                         placeholder="First Name"
                         placeholderTextColor="gray"
-                        value={firstName}
-                        onChangeText={setFirstName}
+                        value={firstname}
+                        onChangeText={setfirstname}
                     />
                 </View>
                 <View style={[styles.inputContainer, styles.halfWidth]}>
@@ -75,8 +83,8 @@ const RegisterScreen = ({ navigation }) => {
                         style={styles.input}
                         placeholder="Last Name"
                         placeholderTextColor="gray"
-                        value={lastName}
-                        onChangeText={setLastName}
+                        value={lastname}
+                        onChangeText={setlastname}
                     />
                 </View>
             </View>
