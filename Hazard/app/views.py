@@ -13,6 +13,8 @@ from django.http import HttpResponse
 import io
 import matplotlib.pyplot as plt
 import osmnx as ox
+import base64
+
 
 
 # Define UserViewSet
@@ -70,16 +72,16 @@ class RegisterAPIView(APIView):
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
-        first_name = request.data.get('firstname')
-        last_name = request.data.get('lastname')
+        firstname = request.data.get('firstname')
+        lastname = request.data.get('lastname')
 
-        if not email or not password or not first_name or not last_name:
+        if not email or not password or not firstname or not lastname:
             return Response({"error": "Email, password, first name, and last name are required."}, 
                             status=status.HTTP_400_BAD_REQUEST)
 
         # Step 1: Create OTPVerification instance
         otp_verification = OTPVerification.objects.create(
-            email=email, firstname=first_name, lastname=last_name
+            email=email, firstname=firstname, lastname=lastname
         )
         otp_verification.generate_otp()
 
@@ -160,7 +162,7 @@ class VerifyOTPAPIView(APIView):
 
 class GenerateMapAPIView(APIView):
     """
-    API to generate a map image with a pinpointed location and return it as a PNG image.
+    API to generate a map image with a pinpointed location and return it as bytecode.
     """
 
     def post(self, request):
@@ -169,42 +171,32 @@ class GenerateMapAPIView(APIView):
             latitude = request.data.get('latitude')
             longitude = request.data.get('longitude')
 
-            if not latitude or not longitude:
-                return Response(
-                    {"error": "Both latitude and longitude are required."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+            if latitude is None or longitude is None:
+                return Response({"error": "Latitude and longitude are required."}, status=status.HTTP_400_BAD_REQUEST)
 
+            # Step 2: Generate map
+            location_point = (latitude, longitude)
             try:
-                # Convert inputs to float
-                latitude = float(latitude)
-                longitude = float(longitude)
-            except ValueError:
-                return Response(
-                    {"error": "Latitude and longitude must be valid numbers."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+                G = ox.graph_from_point(location_point, dist=500, network_type='all')
+            except Exception as e:
+                return Response({"error": f"Error fetching data from OSM: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-            # Step 2: Generate map with OSMNX
-            radius = 500  # Fixed radius of 500 meters
-            graph = ox.graph_from_point((latitude, longitude), dist=radius, network_type="drive")
-            nodes, edges = ox.graph_to_gdfs(graph)
+            if G is None or len(G.nodes) == 0:
+                return Response({"error": "No data elements in server response. Check query location/filters and log."}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Step 3: Plot the map
-            fig, ax = plt.subplots(figsize=(10, 10))
-            edges.plot(ax=ax, linewidth=0.5, color="gray")
-            ax.scatter(longitude, latitude, color="red", s=100, label="Exact Location")
-            ax.legend()
-            ax.set_title("Map with Exact Location")
+            fig, ax = ox.plot_graph(G, show=False, close=False)
+            ax.scatter(longitude, latitude, c='red', s=100, zorder=5)  # Pinpoint the location
 
-            # Step 4: Save the plot to a BytesIO stream
-            img_bytes = io.BytesIO()
-            plt.savefig(img_bytes, format="png", bbox_inches="tight")
-            plt.close(fig)  # Free memory
-            img_bytes.seek(0)
+            # Step 3: Save map to a PNG image
+            buf = io.BytesIO()
+            plt.savefig(buf, format='png')
+            plt.close(fig)
+            buf.seek(0)
 
-            # Step 5: Return the image as a response
-            return HttpResponse(img_bytes, content_type="image/png")
+            # Step 4: Convert image to bytecode
+            image_bytecode = base64.b64encode(buf.read()).decode('utf-8')
+
+            return Response({"image_bytecode": image_bytecode}, status=status.HTTP_200_OK)
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

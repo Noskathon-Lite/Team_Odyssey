@@ -1,10 +1,11 @@
+#urls.py
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
     UserViewSet, HazardViewSet, HomeAPIView, LoginAPIView, ProtectedAPIView, 
-    RegisterAPIView, GenerateOTPAPIView, VerifyOTPAPIView
+    RegisterAPIView, GenerateOTPAPIView, VerifyOTPAPIView,GenerateMapAPIView
 )
-from .views import GenerateMapAPIView
+
 
 # Create a router and register viewsets
 router = DefaultRouter()
@@ -19,5 +20,5 @@ urlpatterns = [
     path('api/protected/', ProtectedAPIView.as_view(), name='protected'),
     path('api/generate-otp/', GenerateOTPAPIView.as_view(), name='generate_otp'),
     path('api/verify-otp/', VerifyOTPAPIView.as_view(), name='verify_otp'),
-    path('generate-map/', GenerateMapAPIView.as_view(), name='generate-map'),
+    path('api/generate-map/', GenerateMapAPIView.as_view(), name='generate-map'),
 ]
