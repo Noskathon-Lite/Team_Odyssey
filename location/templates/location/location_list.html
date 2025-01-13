@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Location List</title>
+</head>
+<body>
+    <h1>Location List</h1>
+    <table>
+        <tr>
+            <th>Latitude</th>
+            <th>Longitude</th>
+            <th>Plus Code</th>
+        </tr>
+        {% for location in locations %}
+        <tr>
+            <td>{{ location.latitude }}</td>
+            <td>{{ location.longitude }}</td>
+            <td>{{ location.plus_code }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="{% url 'location:add_location' %}">Add New Location</a>
+</body>
+</html>
