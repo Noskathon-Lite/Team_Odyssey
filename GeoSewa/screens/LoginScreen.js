@@ -8,20 +8,57 @@ import {
   Alert,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import axios from 'axios'; // Ensure axios is installed for API calls
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { BASE_URL } from "../config/requiredIP";
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
-  const handleLogin = () => {
-    if (email && password) {
-      Alert.alert("Login", `Email: ${email}\nPassword: ${password}`);
-      navigation.navigate("HomeScreen");
-    } else {
-      Alert.alert("Error", "Please fill in all fields.");
-    }
+
+ const handleLogin = async () => {
+    // if (email && password) {
+    //   try {
+
+
+    //     // Send POST request to the login API with the email and password
+    //     const response = await axios.post(`${BASE_URL}/api/login/`, {
+    //       email,
+    //       password
+
+    //     }, {
+    //       headers: {
+    //         "Content-Type": "application/json",
+    //       }
+    //     });
+  
+    //     // If login is successful, you will get a response containing JWT tokens
+    //     const { refresh, access } = response.data;
+    //     console.log('Refresh token:', refresh);
+    //     console.log('Access token:', access);
+  
+    //     // Store the tokens (e.g., using AsyncStorage)
+    //     await AsyncStorage.setItem('refresh_token', refresh);
+    //     await AsyncStorage.setItem('access_token', access);
+  
+        // Navigate to the HomeScreen after successful login
+        navigation.navigate("HomeScreen");
+    //   } catch (error) {
+    //     // Handle errors (e.g., invalid credentials)
+    //     if (error.response) {
+    //       Alert.alert("Error", error.response.data.error);
+    //     } else {
+    //       Alert.alert("Error", "An error occurred. Please try again.");
+    //     }
+    //   }
+    // } else {
+    //   Alert.alert("Error", "Please fill in all fields.");
+    // }
   };
+  
+  
 
   return (
     <View style={styles.container}>
