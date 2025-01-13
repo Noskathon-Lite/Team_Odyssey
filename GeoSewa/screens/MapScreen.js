@@ -14,6 +14,7 @@ import {
 import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import { BASE_URL } from "../config/requiredIP";
 
 const MapScreen = ({ navigation }) => {
   const [location, setLocation] = useState(null);
@@ -73,19 +74,23 @@ const MapScreen = ({ navigation }) => {
         // Perform reverse geocoding for the selected location
         const [address] = await Location.reverseGeocodeAsync(selectedLocation);
         const generalAddress = `${address.name || "Unnamed Area"}, ${address.city || ""}, ${address.region || ""}, ${address.street || ""}, ${address.subregion || ""}, ${address.district || ""}`;
-        console.log("General Location:", generalAddress);
-  
+        
         // Creating a structured address JSON object
         const addressData = {
-          plus_code: address.formattedAddress || "Unnamed Area",
           city: address.city || "",
           province: address.region || "",
           street: address.street || "",
           district: address.subregion || "",
-          name: address.district || ""
+          name: address.district || "",
         };
   
-        // Navigate to the ReportFormScreen with location
+        // Prepare data for the backend
+        const locationData = {
+          latitude: selectedLocation.latitude,
+          longitude: selectedLocation.longitude,
+          address: addressData,
+        };
+  
         Alert.alert(
           "Confirm Location",
           `Location confirmed: ${generalAddress}`,
@@ -93,16 +98,31 @@ const MapScreen = ({ navigation }) => {
             { text: "Cancel", style: "cancel" },
             {
               text: "OK",
-              onPress: () => {
-                const locationData = {
-                  location: selectedLocation,
-                  address: addressData,
-                };
-                console.log("Location Data:", JSON.stringify(locationData.location, null, 2));
-                console.log("Address Data:", JSON.stringify(locationData.address, null, 2));
-                navigation.navigate("CameraScreen", {
-                  location: selectedLocation,
-                });
+              onPress: async () => {
+                console.log("Data being sent to backend:", JSON.stringify(locationData, null, 2));
+                try {
+                  // Replace 'YOUR_BACKEND_URL' with your actual backend endpoint
+                  const response = await fetch(`${BASE_URL}/api/generate-map/`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(locationData),
+                  });
+  
+                  if (response.ok) {
+                    const responseData = await response.json();
+                    console.log('Backend Response:', responseData);
+                    Alert.alert('Success', 'Location sent successfully!');
+                    navigation.navigate("CameraScreen")
+                  } else {
+                    console.error('Failed to send location:', response.status);
+                    Alert.alert('Error', 'Failed to send location to the server.');
+                  }
+                } catch (error) {
+                  console.error('Error:', error);
+                  Alert.alert('Error', 'An error occurred while sending location.');
+                }
               },
             },
           ]
@@ -115,6 +135,8 @@ const MapScreen = ({ navigation }) => {
       Alert.alert("No Location Selected", "Please select a location on the map.");
     }
   };
+  
+  
   
   
 
@@ -133,6 +155,7 @@ const MapScreen = ({ navigation }) => {
     setIsModalVisible(false);
     if (option === "current") {
       goToCurrentLocation();
+
     } else if (option === "select") {
       Alert.alert("Instruction", "Tap on the map to select a location.");
     }

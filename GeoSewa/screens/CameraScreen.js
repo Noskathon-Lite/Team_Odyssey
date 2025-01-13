@@ -50,25 +50,24 @@ const handleTakePhoto = async () => {
   }
 };
 
-const handleRetakePhoto = () => setPhoto(null);
 
 
 const handleImagePicker = async () => {
   // Request media library permissions
   const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
+  
   if (!permissionResult.granted) {
     alert("Permission to access media library is required!");
     return;
   }
-
+  
   // Launch image picker
   const result = await ImagePicker.launchImageLibraryAsync({
     mediaType: "photo",
     allowsEditing: true,
     aspect: [4, 3],
   });
-
+  
   // If the user selects an image, set it to state
   if (!result.canceled && result.assets && result.assets.length > 0) {
     const selectedImage = result.assets[0];
@@ -77,6 +76,7 @@ const handleImagePicker = async () => {
   }
 };
 
+const handleRetakePhoto = () => setPhoto(null);
 const handlePhotoSelect = () => {}
 
 
