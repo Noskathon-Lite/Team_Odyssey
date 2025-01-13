@@ -10,7 +10,7 @@ from keras.utils import np_utils
 global size
 size = 100
 model = Sequential()
-model = load_model('D:/Downloads/potholes/sample.h5')
+model = load_model('D:/Downloads/potholes/samplee.h5')
 
 # Load Testing data: non-pothole
 nonPotholeTestImages = glob.glob("D:/Downloads/potholes/plain/*.jpg")

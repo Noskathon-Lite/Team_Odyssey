@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  fastapi-app:
+    image: fastapi-predictor:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fastapi-container
+    ports:
+      - "7860:7860" # Maps container's port 7860 to host's port 7860
+    volumes:
+      - ./app:/app # Mounts the app directory for live updates (optional)
+    environment:
+      - PYTHONUNBUFFERED=1 # Ensures logs are displayed in real-time
+    restart: always # Restarts the container automatically in case of failure
